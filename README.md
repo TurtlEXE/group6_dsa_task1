@@ -109,6 +109,51 @@ The team intentionally implemented the `validateMultiDigit` method to demonstrat
 
 ## Test Cases
 
-
+| Case Type | Expression | Expected Output | Reason |
+|-----------|------------|-----------------|--------|
+| Sample 1 | `(3+5)*[2-1]` | `VALID` | Well-formed brackets and operators. |
+| Sample 2 | `(3+5]` | `INVALID (Unbalanced brackets)` | Mismatched closing bracket `]`. |
+| Sample 3 | `3+*5` | `INVALID (Operator error)` | Two operators in a row `+*`. |
+| Edge (Nested) | `([{}])` | `VALID` | Only nested brackets, valid structure. |
+| Edge (Empty) | `   ` | `INVALID (Operator error)` | Nothing to evaluate after stripping spaces. |
+| Edge (Op Start) | `+3-4` | `INVALID (Operator error)` | Cannot start with a binary operator. |
+| Edge (Op End) | `3-4*` | `INVALID (Operator error)` | Cannot end with a binary operator. |
+| Edge (Op Next to Bracket)| `(+3)` | `INVALID (Operator error)` | Operator cannot immediately follow an opening bracket. |
 
 ## Sample Run Output
+
+```text
+=== Expression Validator ===
+Enter an arithmetic expression to validate.
+Supported brackets: (), [], {}
+Supported operators: +, -, *, /
+Operands: single-digit integers (0-9)
+Type 'quit' to exit.
+
+Expression: (3+5)*[2-1]
+Result: VALID
+
+Expression: (3+5]
+Result: INVALID (Unbalanced brackets)
+
+Expression: 3+*5
+Result: INVALID (Operator error)
+
+Expression: ([{}])
+Result: VALID
+
+Expression:    
+Result: INVALID (Operator error)
+
+Expression: +3-4
+Result: INVALID (Operator error)
+
+Expression: 3-4*
+Result: INVALID (Operator error)
+
+Expression: (+3)
+Result: INVALID (Operator error)
+
+Expression: quit
+Goodbye!
+```
