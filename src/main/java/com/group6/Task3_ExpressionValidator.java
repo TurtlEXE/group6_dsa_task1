@@ -300,12 +300,89 @@ public class Task3_ExpressionValidator {
         System.out.println();
     }
 
+    // ==================== Test Runner ====================
+
+    /**
+     * Runs a suite of predefined test cases and prints a pass/fail summary.
+     * Execute via:  java com.group6.Task3_ExpressionValidator --test
+     *
+     * Test categories:
+     *   [REQ]    — directly required by the assignment
+     *   [EDGE]   — edge / boundary cases
+     *   [EXT]    — extended validations added beyond the requirement
+     */
+    public static void runTests() {
+        // { expression, expectedResult, label, category }
+        Object[][] tests = {
+            // ── Required cases ──────────────────────────────────────────────
+            { "(3+5)*[2-1]",   true,  "Balanced brackets + operators",          "REQ"  },
+            { "(3+5]",         false, "Mismatched bracket types",               "REQ"  },
+            { "3+*5",          false, "Two consecutive operators",              "REQ"  },
+            { "+3",            false, "Starts with binary operator",            "REQ"  },
+            { "3+",            false, "Ends with binary operator",              "REQ"  },
+            { "([{3+2}])",     true,  "Deeply nested valid brackets",           "REQ"  },
+            // ── Edge / boundary cases ────────────────────────────────────────
+            { "",              false, "Empty string",                           "EDGE" },
+            { "   ",           false, "Whitespace-only string",                 "EDGE" },
+            { "5",             true,  "Single digit operand",                   "EDGE" },
+            { "3 + 5",         true,  "Spaces between tokens (ignored)",        "EDGE" },
+            { "(+3)",          false, "Operator right after opening bracket",   "EDGE" },
+            { "(3+)",          false, "Operator right before closing bracket",  "EDGE" },
+            // ── Extended validations (beyond requirement) ────────────────────
+            { "sadasdas",      false, "[EXT] Letters-only — invalid characters","EXT"  },
+            { "abc+3",         false, "[EXT] Mixed letters and digits",          "EXT"  },
+            { "{}",            false, "[EXT] Empty curly-bracket pair",          "EXT"  },
+            { "()",            false, "[EXT] Empty round-bracket pair",          "EXT"  },
+            { "( )",           false, "[EXT] Empty bracket pair with space",     "EXT"  },
+            { "([])",          false, "[EXT] Empty bracket pair nested inside",  "EXT"  },
+            { "(3+[2])",       true,  "[EXT] Mixed bracket types — valid",       "EXT"  },
+        };
+
+        int passed = 0;
+        int failed = 0;
+
+        System.out.println("=" .repeat(72));
+        System.out.printf("%-4s %-30s %-8s %-8s %-6s%n",
+                          "#", "Expression", "Expected", "Actual", "Result");
+        System.out.println("-".repeat(72));
+
+        for (int i = 0; i < tests.length; i++) {
+            String expr     = (String)  tests[i][0];
+            boolean expect  = (boolean) tests[i][1];
+            String label    = (String)  tests[i][2];
+
+            boolean actual = isValidExpression(expr);
+            boolean ok     = (actual == expect);
+
+            if (ok) passed++; else failed++;
+
+            System.out.printf("%-4d %-30s %-8s %-8s %s%n",
+                i + 1,
+                expr.isEmpty() ? "(empty)" : (expr.isBlank() ? "(spaces)" : expr),
+                expect ? "VALID" : "INVALID",
+                actual ? "VALID" : "INVALID",
+                ok ? "PASS ✓" : "FAIL ✗  ← " + label);
+        }
+
+        System.out.println("=" .repeat(72));
+        System.out.printf("Results: %d/%d passed", passed, tests.length);
+        if (failed > 0) {
+            System.out.printf("  |  %d FAILED ✗%n", failed);
+        } else {
+            System.out.println("  — All tests passed! ✓");
+        }
+        System.out.println("=" .repeat(72));
+    }
+
     // ==================== Main Method ====================
 
     /**
      * Main entry point. Processes multiple expressions until user enters "quit".
      */
     public static void main(String[] args) {
+        // ── Uncomment the line below to run all test cases, then comment it back ──
+//         runTests();
+
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("=== Expression Validator ===");

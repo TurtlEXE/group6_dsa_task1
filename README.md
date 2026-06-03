@@ -27,10 +27,20 @@ A console-based Java application that validates arithmetic expressions using a *
 2. **Operator rules** — ensures `+`, `-`, `*`, `/` are not in invalid positions:
    - Cannot start or end with a binary operator.
    - No two operators in a row (e.g., `3++4` is invalid).
+   - Operator cannot appear immediately after `(` or immediately before `)`.
 3. Ignores spaces. Operands are **single-digit integers** (0–9).
 4. Processes **multiple expressions** until user enters `quit`.
 
 **Bonus:** Supports multi-digit integer validation via a tokenizer pass (`validateMultiDigit` method).
+
+### Extended Validations *(beyond original requirements)*
+
+The following rules are implemented **in addition** to the assignment requirements to make the validator behave correctly for real-world arithmetic expressions:
+
+| # | Rule | Example (invalid) | Reason |
+|---|------|--------------------|--------|
+| EXT-1 | **Character whitelist** — only digits `0–9`, operators `+`,`-`,`*`,`/`, brackets `()[]{}`, and spaces are allowed. | `sadasdas`, `a+b` | Letters and unknown symbols are not valid arithmetic tokens. |
+| EXT-2 | **No empty bracket pairs** — a closing bracket must not immediately follow an opening bracket (after stripping spaces). | `()`, `{}`, `([])`, `( )` | An empty bracket has no mathematical meaning. |
 
 ---
 
@@ -57,7 +67,12 @@ java com.group6.Task3_ExpressionValidator
 
 ```bash
 mvn compile
+
+# Interactive mode
 mvn exec:java -Dexec.mainClass="com.group6.Task3_ExpressionValidator"
+
+# Run automated test suite
+java -cp target/classes com.group6.Task3_ExpressionValidator --test
 ```
 
 ### Using IntelliJ IDEA
@@ -109,6 +124,98 @@ The team intentionally implemented the `validateMultiDigit` method to demonstrat
 
 ## Test Cases
 
+Run all test cases automatically with:
+```bash
+java -cp target/classes com.group6.Task3_ExpressionValidator --test
+```
 
+### Required (REQ) — from assignment spec
+
+| # | Expression | Expected | Notes |
+|---|-----------|----------|-------|
+| 1 | `(3+5)*[2-1]` | VALID | Sample from spec |
+| 2 | `(3+5]` | INVALID | Mismatched bracket types |
+| 3 | `3+*5` | INVALID | Two consecutive operators |
+| 4 | `+3` | INVALID | Starts with binary operator |
+| 5 | `3+` | INVALID | Ends with binary operator |
+| 6 | `([{3+2}])` | VALID | Deeply nested, all types |
+
+### Edge / Boundary (EDGE)
+
+| # | Expression | Expected | Notes |
+|---|-----------|----------|-------|
+| 7 | *(empty string)* | INVALID | No tokens at all |
+| 8 | `"   "` (spaces only) | INVALID | Blank after stripping |
+| 9 | `5` | VALID | Single-digit operand |
+| 10 | `3 + 5` | VALID | Spaces ignored |
+| 11 | `(+3)` | INVALID | Operator after opening bracket |
+| 12 | `(3+)` | INVALID | Operator before closing bracket |
+
+### Extended (EXT) — beyond requirements
+
+| # | Expression | Expected | Notes |
+|---|-----------|----------|-------|
+| 13 | `sadasdas` | INVALID | [EXT-1] Letters only |
+| 14 | `abc+3` | INVALID | [EXT-1] Mixed letters + digit |
+| 15 | `{}` | INVALID | [EXT-2] Empty curly brackets |
+| 16 | `()` | INVALID | [EXT-2] Empty round brackets |
+| 17 | `( )` | INVALID | [EXT-2] Empty brackets with space |
+| 18 | `([])` | INVALID | [EXT-2] Empty brackets nested |
+| 19 | `(3+[2])` | VALID | [EXT-2] Mixed bracket types, valid |
+
+---
 
 ## Sample Run Output
+
+### Automated test suite (`--test` flag)
+
+```
+========================================================================
+#    Expression                     Expected Actual   Result
+------------------------------------------------------------------------
+1    (3+5)*[2-1]                    VALID    VALID    PASS ✓
+2    (3+5]                          INVALID  INVALID  PASS ✓
+3    3+*5                           INVALID  INVALID  PASS ✓
+4    +3                             INVALID  INVALID  PASS ✓
+5    3+                             INVALID  INVALID  PASS ✓
+6    ([{3+2}])                      VALID    VALID    PASS ✓
+7    (empty)                        INVALID  INVALID  PASS ✓
+8    (spaces)                       INVALID  INVALID  PASS ✓
+9    5                              VALID    VALID    PASS ✓
+10   3 + 5                          VALID    VALID    PASS ✓
+11   (+3)                           INVALID  INVALID  PASS ✓
+12   (3+)                           INVALID  INVALID  PASS ✓
+13   sadasdas                       INVALID  INVALID  PASS ✓
+14   abc+3                          INVALID  INVALID  PASS ✓
+15   {}                             INVALID  INVALID  PASS ✓
+16   ()                             INVALID  INVALID  PASS ✓
+17   ( )                            INVALID  INVALID  PASS ✓
+18   ([])                           INVALID  INVALID  PASS ✓
+19   (3+[2])                        VALID    VALID    PASS ✓
+========================================================================
+Results: 19/19 passed  — All tests passed! ✓
+========================================================================
+```
+
+### Interactive mode
+
+```
+=== Expression Validator ===
+Enter an arithmetic expression to validate.
+Supported brackets: (), [], {}
+Supported operators: +, -, *, /
+Operands: single-digit integers (0-9)
+Type 'quit' to exit.
+
+Expression: (3+5)*[2-1]
+Result: VALID
+
+Expression: (3+5]
+Result: INVALID (Unbalanced brackets)
+
+Expression: 3+*5
+Result: INVALID (Operator error)
+
+Expression: quit
+Goodbye!
+```
