@@ -10,7 +10,7 @@
 
 | Member | Role |
 |--------|------|
-| Phạm Văn Tùng | Leader |
+| Phạm Văn Tùng | Developer |
 | Nguyễn Ngọc Sơn | Developer |
 | Trần Nam Anh | Developer |
 | Đinh Thị Phương Thanh | Developer |
@@ -166,8 +166,6 @@ java -cp target/classes com.group6.Task3_ExpressionValidator --test
 ---
 
 ## Sample Run Output
-
-### Automated test suite (`--test` flag)
 
 ```
 ========================================================================
