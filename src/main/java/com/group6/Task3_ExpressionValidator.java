@@ -6,11 +6,13 @@ import java.util.Stack;
 /**
  * Task 3 — Stack: Expression Validator
  *
- * A bracket and operator validator for simple arithmetic expressions using a Stack.
+ * A bracket and operator validator for simple arithmetic expressions using a
+ * Stack.
  *
  * Features:
  * - Balanced bracket checking: (), [], {}
- * - Operator validation: no leading/trailing operators, no consecutive operators
+ * - Operator validation: no leading/trailing operators, no consecutive
+ * operators
  * - Operands are single-digit integers (0–9)
  * - Processes multiple expressions until user enters "quit"
  *
@@ -54,10 +56,12 @@ public class Task3_ExpressionValidator {
     }
 
     /**
-     * Validates the full expression: balanced brackets AND operator placement rules.
+     * Validates the full expression: balanced brackets AND operator placement
+     * rules.
      *
      * Operator rules:
-     * - Expression (ignoring spaces) cannot start or end with a binary operator (+, -, *, /)
+     * - Expression (ignoring spaces) cannot start or end with a binary operator (+,
+     * -, *, /)
      * - No two operators can appear consecutively (e.g., "3++4" is invalid)
      * - Operators must appear between operands or bracket groups
      *
@@ -78,7 +82,25 @@ public class Task3_ExpressionValidator {
             return false;
         }
 
-        // Step 3: Check that expression does not start or end with a binary operator
+        // Step 3: Validate that every character is a legal symbol
+        // Allowed: digits 0-9, operators +/-/*//, brackets ()[]{}
+        for (char c : cleaned.toCharArray()) {
+            if (!Character.isDigit(c) && !isOperator(c)
+                    && !isOpenBracket(c) && !isCloseBracket(c)) {
+                return false; // Illegal character (e.g., letter or unknown symbol)
+            }
+        }
+
+        // Step 4: Reject empty brackets — a closing bracket must not immediately
+        // follow an opening bracket (checked on the space-stripped string so that
+        // "( )" is treated the same as "()")
+        for (int i = 1; i < cleaned.length(); i++) {
+            if (isCloseBracket(cleaned.charAt(i)) && isOpenBracket(cleaned.charAt(i - 1))) {
+                return false; // Empty bracket pair, e.g. (), [], {}, ([]), etc.
+            }
+        }
+
+        // Step 5: Check that expression does not start or end with a binary operator
         char first = cleaned.charAt(0);
         char last = cleaned.charAt(cleaned.length() - 1);
 
@@ -86,7 +108,7 @@ public class Task3_ExpressionValidator {
             return false;
         }
 
-        // Step 4: Check for consecutive operators and invalid operator positions
+        // Step 6: Check for consecutive operators and invalid operator positions
         for (int i = 0; i < cleaned.length() - 1; i++) {
             char current = cleaned.charAt(i);
             char next = cleaned.charAt(i + 1);
@@ -114,10 +136,12 @@ public class Task3_ExpressionValidator {
 
     /**
      * BONUS: Validates an expression that may contain multi-digit integers.
-     * Uses a tokenizer pass to separate numbers, operators, and brackets into tokens,
+     * Uses a tokenizer pass to separate numbers, operators, and brackets into
+     * tokens,
      * then validates token sequence using a second stack.
      *
-     * @param expr the arithmetic expression string (may contain multi-digit numbers)
+     * @param expr the arithmetic expression string (may contain multi-digit
+     *             numbers)
      * @return "VALID" if valid, or an appropriate "INVALID (...)" message
      */
     public static String validateMultiDigit(String expr) {
@@ -130,6 +154,21 @@ public class Task3_ExpressionValidator {
         String cleaned = expr.replaceAll("\\s+", "");
         if (cleaned.isEmpty()) {
             return "INVALID (Operator error)";
+        }
+
+        // Step 2a: Validate that every character is a legal symbol before tokenizing
+        for (char c : cleaned.toCharArray()) {
+            if (!Character.isDigit(c) && !isOperator(c)
+                    && !isOpenBracket(c) && !isCloseBracket(c)) {
+                return "INVALID (Invalid character)";
+            }
+        }
+
+        // Step 2b: Reject empty bracket pairs (e.g. (), [], {}, ([]))
+        for (int k = 1; k < cleaned.length(); k++) {
+            if (isCloseBracket(cleaned.charAt(k)) && isOpenBracket(cleaned.charAt(k - 1))) {
+                return "INVALID (Empty brackets)";
+            }
         }
 
         // Use a stack-based approach to collect tokens
@@ -151,8 +190,8 @@ public class Task3_ExpressionValidator {
                 tokenStack.push(String.valueOf(ch));
                 i++;
             } else {
-                // Invalid character
-                return "INVALID (Operator error)";
+                // Should not reach here after Step 2a, but guard just in case
+                return "INVALID (Invalid character)";
             }
         }
 
@@ -261,12 +300,89 @@ public class Task3_ExpressionValidator {
         System.out.println();
     }
 
+    // ==================== Test Runner ====================
+
+    /**
+     * Runs a suite of predefined test cases and prints a pass/fail summary.
+     * Execute via:  java com.group6.Task3_ExpressionValidator --test
+     *
+     * Test categories:
+     *   [REQ]    — directly required by the assignment
+     *   [EDGE]   — edge / boundary cases
+     *   [EXT]    — extended validations added beyond the requirement
+     */
+    public static void runTests() {
+        // { expression, expectedResult, label, category }
+        Object[][] tests = {
+            // ── Required cases ──────────────────────────────────────────────
+            { "(3+5)*[2-1]",   true,  "Balanced brackets + operators",          "REQ"  },
+            { "(3+5]",         false, "Mismatched bracket types",               "REQ"  },
+            { "3+*5",          false, "Two consecutive operators",              "REQ"  },
+            { "+3",            false, "Starts with binary operator",            "REQ"  },
+            { "3+",            false, "Ends with binary operator",              "REQ"  },
+            { "([{3+2}])",     true,  "Deeply nested valid brackets",           "REQ"  },
+            // ── Edge / boundary cases ────────────────────────────────────────
+            { "",              false, "Empty string",                           "EDGE" },
+            { "   ",           false, "Whitespace-only string",                 "EDGE" },
+            { "5",             true,  "Single digit operand",                   "EDGE" },
+            { "3 + 5",         true,  "Spaces between tokens (ignored)",        "EDGE" },
+            { "(+3)",          false, "Operator right after opening bracket",   "EDGE" },
+            { "(3+)",          false, "Operator right before closing bracket",  "EDGE" },
+            // ── Extended validations (beyond requirement) ────────────────────
+            { "sadasdas",      false, "[EXT] Letters-only — invalid characters","EXT"  },
+            { "abc+3",         false, "[EXT] Mixed letters and digits",          "EXT"  },
+            { "{}",            false, "[EXT] Empty curly-bracket pair",          "EXT"  },
+            { "()",            false, "[EXT] Empty round-bracket pair",          "EXT"  },
+            { "( )",           false, "[EXT] Empty bracket pair with space",     "EXT"  },
+            { "([])",          false, "[EXT] Empty bracket pair nested inside",  "EXT"  },
+            { "(3+[2])",       true,  "[EXT] Mixed bracket types — valid",       "EXT"  },
+        };
+
+        int passed = 0;
+        int failed = 0;
+
+        System.out.println("=" .repeat(72));
+        System.out.printf("%-4s %-30s %-8s %-8s %-6s%n",
+                          "#", "Expression", "Expected", "Actual", "Result");
+        System.out.println("-".repeat(72));
+
+        for (int i = 0; i < tests.length; i++) {
+            String expr     = (String)  tests[i][0];
+            boolean expect  = (boolean) tests[i][1];
+            String label    = (String)  tests[i][2];
+
+            boolean actual = isValidExpression(expr);
+            boolean ok     = (actual == expect);
+
+            if (ok) passed++; else failed++;
+
+            System.out.printf("%-4d %-30s %-8s %-8s %s%n",
+                i + 1,
+                expr.isEmpty() ? "(empty)" : (expr.isBlank() ? "(spaces)" : expr),
+                expect ? "VALID" : "INVALID",
+                actual ? "VALID" : "INVALID",
+                ok ? "PASS ✓" : "FAIL ✗  ← " + label);
+        }
+
+        System.out.println("=" .repeat(72));
+        System.out.printf("Results: %d/%d passed", passed, tests.length);
+        if (failed > 0) {
+            System.out.printf("  |  %d FAILED ✗%n", failed);
+        } else {
+            System.out.println("  — All tests passed! ✓");
+        }
+        System.out.println("=" .repeat(72));
+    }
+
     // ==================== Main Method ====================
 
     /**
      * Main entry point. Processes multiple expressions until user enters "quit".
      */
     public static void main(String[] args) {
+        // ── Uncomment the line below to run all test cases, then comment it back ──
+//         runTests();
+
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("=== Expression Validator ===");
